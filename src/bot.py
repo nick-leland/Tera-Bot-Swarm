@@ -1,13 +1,14 @@
 import interception
+from interception import beziercurve
 import time
 import math
-import ctypes
 
-global_ALT_KEY = True
+curve_params = beziercurve.BezierCurveParams()
 
 
 def move_mouse_to(x, y):
     interception.move_to(x, y)
+
 
 def move_circle(radius, speed):
     current_position = interception.mouse_position()
@@ -16,6 +17,12 @@ def move_circle(radius, speed):
         y = int(radius * math.sin(i))
         move_mouse_to(current_position[0] + x, current_position[1] + y)
         time.sleep(0.1)
+
+
+def print_position_log():
+    interception.write("/8 pos", 0.1)
+    interception.press('enter')
+
 
 if __name__ == "__main__":
     # interception.auto_capture_devices()
@@ -27,17 +34,21 @@ if __name__ == "__main__":
     #     print("Moved in a circle")
     #     time.sleep(1)
 
-    user32 = ctypes.windll.user32
+    print("Starting bot")
+    beziercurve.set_default_params(curve_params)
+    time.sleep(10)
+    print("Current position: ", interception.mouse_position())
 
-    # Get foreground window handle
-    hwnd = user32.GetForegroundWindow()
+    print("Trial 1")
+    print_position_log()
+    interception.move_relative(100, 0)
+    interception.press('w')
+    interception.press('s')
 
-    while True:
-        # Buffer for window text
-        length = user32.GetWindowTextLengthW(hwnd)
-        buffer = ctypes.create_unicode_buffer(length + 1)
-        user32.GetWindowTextW(hwnd, buffer, length + 1)
+    print("Trial 2")
+    print_position_log()
+    interception.move_relative(100, 0)
+    interception.press('w')
+    interception.press('s')
 
-        print(f"Active window title: {buffer.value}")
-        time.sleep(1)
-
+    print("Trials complet")
