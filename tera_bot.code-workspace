@@ -1,16 +1,27 @@
 {
 	"folders": [
 		{
+			"name": "logging",
+			"path": "D:/TERA Starscape/TERA Starscape Toolbox/mods/logging"
+		},
+		{
+			"name": "tera_bot",
 			"path": "."
 		},
 		{
-			"path": "D:/TERA Starscape/TERA Starscape Toolbox/mods/python-bridge"
-		},
-		{
+			"name": "TERA Starscape Toolbox",
 			"path": "D:/TERA Starscape/TERA Starscape Toolbox"
 		},
 		{
+			"name": "Toolbox",
 			"path": "D:/Tera Agaia Online/Toolbox"
+		},
+		{
+			"name": "Auto-Bank",
+			"path": "D:/TERA Starscape/TERA Starscape Toolbox/mods/Auto-Bank"
+		},
+		{
+			"path": "D:/TERA Starscape/TERA Starscape Toolbox/mods/packet-logger"
 		}
 	],
 	"settings": {}
