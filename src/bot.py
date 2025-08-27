@@ -57,16 +57,22 @@ if __name__ == "__main__":
     print("Current position: ", interception.mouse_position())
     print_position_log()
 
+    # Scroll out the maximum distance
+    for i in range(20):
+        interception.scroll("down")
+
     print("Trial 1")
     interception.move_relative(100, 0)
     interception.press('s')
     interception.press('w')
+    print("Current position: ", interception.mouse_position())
     print_position_log()
 
     print("Trial 2")
     interception.move_relative(100, 0)
     interception.press('s')
     interception.press('w')
+    print("Current position: ", interception.mouse_position())
     print_position_log()
 
-    print("Trials complet")
+    print("Trials complete")
