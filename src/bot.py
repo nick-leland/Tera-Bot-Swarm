@@ -22,6 +22,7 @@ from interception import beziercurve
 interception.auto_capture_devices()
 curve_params = beziercurve.BezierCurveParams()
 
+
 def move_mouse_to(x, y):
     interception.move_to(x, y)
 
@@ -36,7 +37,7 @@ def move_circle(radius, speed):
 
 
 def print_position_log():
-    interception.write("/8 pos", 0.1)
+    interception.write("/8 savepos", 0.1)
     interception.press('enter')
 
 
@@ -54,17 +55,18 @@ if __name__ == "__main__":
     beziercurve.set_default_params(curve_params)
     time.sleep(10)
     print("Current position: ", interception.mouse_position())
+    print_position_log()
 
     print("Trial 1")
-    print_position_log()
     interception.move_relative(100, 0)
-    interception.press('w')
     interception.press('s')
+    interception.press('w')
+    print_position_log()
 
     print("Trial 2")
-    print_position_log()
     interception.move_relative(100, 0)
-    interception.press('w')
     interception.press('s')
+    interception.press('w')
+    print_position_log()
 
     print("Trials complet")
