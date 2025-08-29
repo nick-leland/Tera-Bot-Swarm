@@ -158,75 +158,30 @@ def _latest_path_and_image():
     return p, cv2.imread(p)
 
 
-# Tunables (same as before; adjust if needed)
-SIM_THRESHOLD = 0.995
-CONSEC_REQUIRED = 5
-FRAME_DELAY = 0.10   # time between move and screenshot
-WRITE_WAIT = 0.15   # after printscreen, let the file land
+# --- Tunables (keep consistent with your previous helpers) ---
+SIM_THRESHOLD      = 0.995
+CONSEC_REQUIRED    = 5
+FRAME_DELAY        = 0.10     # wait after move before screenshot
+WRITE_WAIT         = 0.15     # wait after printscreen for file write
 MAX_STEPS_PER_SWEEP = 200000  # safety cap
+
 TERA_SS_DIR = r"C:\Users\user\Pictures\TERA_ScreenShots"
 
 
-def grab_new(cur_path):
+def grab_new(prev_path):
     interception.press("printscreen")
     time.sleep(WRITE_WAIT)
-    new_path = wait_for_new_file(TERA_SS_DIR, cur_path, timeout=3.0)
-    img = cv2.imread(new_path)
-    return new_path, img
+    new_path = wait_for_new_file(TERA_SS_DIR, prev_path, timeout=3.0)
+    return new_path, cv2.imread(new_path)
 
 
-def reach_clamp(cur_path, cur_img, step_dy):
+def steps_to_bottom_from_current(restore=False, cleanup=True):
     """
-    From the current position, walk in 'step_dy' (+1 up, -1 down) until the clamp is detected.
-    Returns: (effective_steps_to_clamp, new_path, new_img)
-    'effective_steps_to_clamp' subtracts the debounce streak so you don't overcount overshoot.
+    From *current* camera pitch, step downward (dy=-1) until bottom clamp.
+    Returns the effective number of counts ("interception pixels") from neutral to bottom.
+    If restore=True, moves back up by that many counts to return to the starting pitch.
     """
-    streak = 0
-    steps = 0
-    last_img = cur_img
-    last_path = cur_path
-
-    while steps < MAX_STEPS_PER_SWEEP:
-        interception.move_relative(0, step_dy)
-        steps += 1
-        time.sleep(FRAME_DELAY)
-
-        new_path, new_img = grab_new(last_path)
-        score = compare_frames(last_img, new_img)
-
-        if score >= SIM_THRESHOLD:
-            streak += 1
-            if streak >= CONSEC_REQUIRED:
-                effective = steps - CONSEC_REQUIRED
-                # cleanup the last old file if it’s different
-                try:
-                    if last_path and last_path != new_path and os.path.exists(last_path):
-                        os.remove(last_path)
-                except Exception:
-                    pass
-                return max(effective, 0), new_path, new_img
-        else:
-            streak = 0
-
-        # progress state & cleanup
-        try:
-            if last_path and last_path != new_path and os.path.exists(last_path):
-                os.remove(last_path)
-        except Exception:
-            pass
-        last_img = new_img
-        last_path = new_path
-
-    raise RuntimeError("Clamp not found within MAX_STEPS_PER_SWEEP; adjust thresholds or step timing.")
-
-
-def measure_start_offset_and_range():
-    """
-    Measures:
-      - starting_offset_from_top: counts from current position up to top clamp (no hidden shove)
-      - total_range: counts from top to bottom clamp
-    """
-    # Baseline screenshot (if none exists yet, take one)
+    # Ensure we have a baseline frame
     cur_path = latest_file(TERA_SS_DIR)
     if not cur_path:
         interception.press("printscreen")
@@ -234,15 +189,52 @@ def measure_start_offset_and_range():
         cur_path = latest_file(TERA_SS_DIR)
     cur_img = cv2.imread(cur_path)
 
-    # 1) From current position, go UP to the top clamp
-    up_eff, cur_path, cur_img = reach_clamp(cur_path, cur_img, step_dy=+1)
-    starting_offset_from_top = up_eff
+    steps = 0
+    streak = 0
+    last_path, last_img = cur_path, cur_img
 
-    # 2) From top clamp, go DOWN to the bottom clamp
-    down_eff, cur_path, cur_img = reach_clamp(cur_path, cur_img, step_dy=-1)
-    total_range = down_eff
+    while steps < MAX_STEPS_PER_SWEEP:
+        # One-count step downward
+        interception.move_relative(0, -1)
+        steps += 1
 
-    return starting_offset_from_top, total_range
+        time.sleep(FRAME_DELAY)
+        new_path, new_img = grab_new(last_path)
+
+        score = compare_frames(last_img, new_img)
+        if score >= SIM_THRESHOLD:
+            streak += 1
+            if streak >= CONSEC_REQUIRED:
+                effective = max(steps - CONSEC_REQUIRED, 0)
+
+                if restore and effective > 0:
+                    # Go back to the exact starting pitch
+                    interception.move_relative(0, +effective)
+                    time.sleep(0.05)
+
+                # Optional: clean up older screenshot
+                if cleanup:
+                    try:
+                        if last_path and last_path != new_path and os.path.exists(last_path):
+                            os.remove(last_path)
+                    except Exception:
+                        pass
+
+                return effective
+        else:
+            streak = 0
+
+        # Advance & clean up
+        if cleanup:
+            try:
+                if last_path and last_path != new_path and os.path.exists(last_path):
+                    os.remove(last_path)
+            except Exception:
+                pass
+
+        last_path, last_img = new_path, new_img
+
+    raise RuntimeError("Bottom clamp not detected; adjust SIM_THRESHOLD/CONSEC_REQUIRED or timing.")
 
 
 if __name__ == "__main__":
@@ -251,17 +243,11 @@ if __name__ == "__main__":
     time.sleep(10)
 
     zoom_out()
-    toggle_hud(mode=True)
+    toggle_hud(mode=True)   # keep visuals stable
 
-    # IMPORTANT: no shove here; we start exactly where the camera is now.
+    # Single-direction measure: neutral -> bottom only
+    distance_to_bottom = steps_to_bottom_from_current(restore=False)
 
-    start_from_top, total_range = measure_start_offset_and_range()
-    start_from_bottom = max(total_range - start_from_top, 0)
-    pct = (start_from_top / total_range * 100.0) if total_range > 0 else float('nan')
-
-    print(f"Starting position: {start_from_top} counts from TOP "
-          f"({pct:.2f}% of total range).")
-    print(f"Starting position from BOTTOM: {start_from_bottom} counts.")
-    print(f"Total vertical (pitch) range: {total_range} counts.")
+    print(f"Distance from current (neutral) to bottom clamp: {distance_to_bottom} counts")
 
     toggle_hud(mode=False)
