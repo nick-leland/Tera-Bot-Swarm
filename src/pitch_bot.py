@@ -118,12 +118,12 @@ def measure_pitch_range_counts(grab_img_fn, CONSEC_REQUIRED, FRAME_DELAY, WRITE_
     # Try nudging upward (+dy) to confirm we're clamped at top.
     def nudge_up():
         interception.move_relative(0, +1)   # +dy = up
-    clamped, cur_img = at_clamp(cur_img, nudge_up, grab_img_fn)
+    clamped, cur_img = at_clamp(cur_img, nudge_up, grab_img_fn, CONSEC_REQUIRED, FRAME_DELAY, WRITE_WAIT, SIM_THRESHOLD)
     if not clamped:
         # Not yet clamped: push farther up hard, then confirm again
         interception.move_relative(0, +500)  # shove up
         time.sleep(0.1)
-        clamped, cur_img = at_clamp(cur_img, nudge_up, grab_img_fn)
+        clamped, cur_img = at_clamp(cur_img, nudge_up, grab_img_fn, CONSEC_REQUIRED, FRAME_DELAY, WRITE_WAIT, SIM_THRESHOLD)
 
     # 2) Walk DOWN step-by-step until we hit BOTTOM clamp
     total_steps = 0
