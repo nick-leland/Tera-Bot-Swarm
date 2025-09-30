@@ -2,8 +2,26 @@
 import json
 import zmq
 import time
-import interception
+import os
+import sys
+import ctypes
 from interception_commands import zoom_out
+
+
+DLL_DIR = r"C:\Tools\Interception\library\x64"
+
+if not os.path.exists(os.path.join(DLL_DIR, "interception.dll")):
+    sys.exit(f"interception.dll not found in {DLL_DIR}")
+else:
+    os.add_dll_directory(DLL_DIR)
+
+    ctypes.WinDLL(os.path.join(DLL_DIR, "interception.dll"))
+
+    import interception
+    from interception import beziercurve
+
+    interception.auto_capture_devices()
+    curve_params = beziercurve.BezierCurveParams()
 
 
 def mouse_calibration(steps: int, step_size: int, radar_socket):
@@ -53,16 +71,20 @@ if __name__ == "__main__":
     radar_socket = zmq.Context().socket(zmq.SUB)
     radar_socket.connect("tcp://127.0.0.1:3000")
     radar_socket.setsockopt(zmq.SUBSCRIBE, b"")
+    print("ZMQ socket connected to TERA Radar")
 
     # Basic Game Initialization
     while True:
         try:
             message = radar_socket.recv_string(zmq.NOBLOCK)
         except zmq.error.Again:
+            print("No message received from TERA Radar, Waiting for message")
             time.sleep(0.01)
             continue
 
         if message:
+            print("Message received from TERA Radar, Starting Game")
+
             # Intiial Game Setup
             interception.press("esc")
             time.sleep(0.1)
