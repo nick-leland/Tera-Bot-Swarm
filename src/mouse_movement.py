@@ -1,81 +1,75 @@
 """The Goal of this file is to test the mouse movement of the character to entities found in radar."""
-import zmq
 import json
+import zmq
 import time
-import math
-import os
+import interception
+from interception_commands import zoom_out
 
 
-def target_entity(player_position, entity_position):
+def mouse_calibration(steps: int, step_size: int, radar_socket):
+    """Learn the rotation values from interception to radians (-pi to pi values)"""
+    for step in range(steps):
+        interception.move_relative(step_size, 0)
+
+        # Move backwards then forwards to trigger rotation
+        interception.press("s")
+        time.sleep(0.1)
+        interception.press("w")
+        time.sleep(1)  # Wait for new Socket to Update
+
+        try:
+            message = radar_socket.recv_string(zmq.NOBLOCK)
+            data = json.loads(message)
+        except zmq.error.Again:
+            time.sleep(0.01)
+            continue
+        # Write player rotation values to file
+        with open('player_rotation.txt', 'w') as f:
+            f.write(str(data['player']['rotation']))
+
+
+def target_entity(player_information, entity_information, current_pitch):
+    # Initial Player Information
+    player_x = player_information['position']['x']
+    player_y = player_information['position']['y']
+    player_z = player_information['position']['z']
+    player_rotation = player_information['rotation']
+
+    # Initial Entity Information
+    entity_x = entity_information['position']['x']
+    entity_y = entity_information['position']['y']
+    entity_z = entity_information['position']['z']
+
     # Horizontal Movement
 
-    # Vertical Movement
+    # Vertical Movement, ignore for now
     return
+
 
 if __name__ == "__main__":
     # Set initial mouse movement values (These are important to reset or build on)
 
-    TERA_UNITS_PER_METER = 16.49  # same factor the mod uses
-    
     # Open the ZMQ socket
-    socket = zmq.Context().socket(zmq.SUB)
-    socket.connect("tcp://127.0.0.1:3000")
-    socket.setsockopt(zmq.SUBSCRIBE, b"")
-    
-    def clear_screen():
-        os.system('cls' if os.name == 'nt' else 'clear')
-    
-    def format_position(pos):
-        return f"({pos['x']:8.1f}, {pos['y']:8.1f}, {pos['z']:8.1f})"
-    
+    radar_socket = zmq.Context().socket(zmq.SUB)
+    radar_socket.connect("tcp://127.0.0.1:3000")
+    radar_socket.setsockopt(zmq.SUBSCRIBE, b"")
+
+    # Basic Game Initialization
     while True:
         try:
-            message = socket.recv_string(zmq.NOBLOCK)
+            message = radar_socket.recv_string(zmq.NOBLOCK)
         except zmq.error.Again:
             time.sleep(0.01)
             continue
-        
-        if not message:
-            continue
-        
-        data = json.loads(message)
-        player_pos = data['player']['position']
-        
-        # Clear screen and show header
-        clear_screen()
-        print("=" * 80)
-        print("TERA BOT - Entity Monitor")
-        print("=" * 80)
-        print(f"Player Position: {format_position(player_pos)}")
-        print("-" * 80)
-        print(f"{'Name':<20} {'Type':<15} {'Distance':<10} {'Position'}")
-        print("-" * 80)
-        
-        # Sort entities by distance for better readability
-        entities_with_distance = []
-        for entity in data['entities']:
-            pos = entity['position']
-            dx = pos['x'] - player_pos['x']
-            dy = pos['y'] - player_pos['y']
-            dz = pos['z'] - player_pos['z']
-            distance_units = math.sqrt(dx*dx + dy*dy + dz*dz)
-            distance_m = distance_units / TERA_UNITS_PER_METER
-            entities_with_distance.append((entity, distance_m))
-        
-        # Sort by distance (closest first)
-        entities_with_distance.sort(key=lambda x: x[1])
-        
-        # Limit to 35 closest entities
-        entities_to_show = entities_with_distance[:35]
-        
-        # Display entities
-        for entity, distance_m in entities_to_show:
-            name = entity['name'][:19]  # Truncate long names
-            entity_type = entity['type'][:14]  # Truncate long types
-            pos = entity['position']
-            print(f"{name:<20} {entity_type:<15} {distance_m:>7.1f}m   {format_position(pos)}")
-        
-        print("=" * 80)
-        print(f"Total entities: {len(data['entities'])}")
-        print("Press Ctrl+C to exit")
-    
+
+        if message:
+            # Intiial Game Setup
+            interception.press("esc")
+            time.sleep(0.1)
+            zoom_out()
+            time.sleep(0.1)
+
+            # Mouse Calibration
+            mouse_calibration(10, 10, radar_socket)
+            print("Mouse Calibration Complete")
+            break
