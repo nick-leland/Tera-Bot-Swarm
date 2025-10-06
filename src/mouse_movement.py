@@ -42,8 +42,14 @@ def mouse_calibration(steps: int, step_size: int, radar_socket):
             time.sleep(0.01)
             continue
         # Write player rotation values to file
-        with open('player_rotation.txt', 'w') as f:
-            f.write(str(data['player']['rotation']))
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname('player_rotation.txt'), exist_ok=True)
+            with open('player_rotation.txt', 'w') as f:
+                f.write(str(data['player']['rotation']))
+        except IOError as e:
+            print(f"Error writing to player_rotation.txt: {e}")
+            continue
 
 
 def target_entity(player_information, entity_information, current_pitch):
@@ -72,8 +78,19 @@ if __name__ == "__main__":
     radar_socket.connect("tcp://127.0.0.1:3000")
     radar_socket.setsockopt(zmq.SUBSCRIBE, b"")
     print("ZMQ socket connected to TERA Radar")
+    
+    # Give the socket time to establish the connection
+    time.sleep(0.1)
 
     # Basic Game Initialization
+    print("Waiting for TERA Radar to start publishing data...")
+    print("Make sure:")
+    print("1. TERA is running and you're in-game (not character selection)")
+    print("2. TERA Radar mod is enabled in TERA Toolbox")
+    print("3. The mod has been built with: node build.js")
+    print("4. Check TERA Toolbox console for any radar mod errors")
+    print()
+    
     while True:
         try:
             message = radar_socket.recv_string(zmq.NOBLOCK)
