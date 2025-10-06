@@ -43,7 +43,7 @@ def mouse_calibration(steps: int, step_size: int, radar_socket):
             continue
         # Write player rotation values to file
         try:
-            rotation_path = 'player_rotation.txt'
+            rotation_path = f'player_rotation_{step}.txt'
             rotation_dir = os.path.dirname(rotation_path)
             if rotation_dir:
                 os.makedirs(rotation_dir, exist_ok=True)
