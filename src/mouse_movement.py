@@ -43,9 +43,11 @@ def mouse_calibration(steps: int, step_size: int, radar_socket):
             continue
         # Write player rotation values to file
         try:
-            # Ensure directory exists
-            os.makedirs(os.path.dirname('player_rotation.txt'), exist_ok=True)
-            with open('player_rotation.txt', 'w') as f:
+            rotation_path = 'player_rotation.txt'
+            rotation_dir = os.path.dirname(rotation_path)
+            if rotation_dir:
+                os.makedirs(rotation_dir, exist_ok=True)
+            with open(rotation_path, 'w') as f:
                 f.write(str(data['player']['rotation']))
         except IOError as e:
             print(f"Error writing to player_rotation.txt: {e}")
