@@ -6,6 +6,7 @@ import os
 import sys
 import ctypes
 from interception_commands import zoom_out
+import math
 
 
 DLL_DIR = r"C:\Tools\Interception\library\x64"
@@ -53,6 +54,9 @@ def mouse_calibration(steps: int, step_size: int, radar_socket):
             print(f"Error writing to player_rotation.txt: {e}")
             continue
 
+def radians_to_interception_movement(angle):
+    return int(angle * 579.5)
+
 
 def target_entity(player_information, entity_information, current_pitch):
     # Initial Player Information
@@ -67,9 +71,19 @@ def target_entity(player_information, entity_information, current_pitch):
     entity_z = entity_information['position']['z']
 
     # Horizontal Movement
-
+    directional_vector = (entity_x - player_x, entity_y - player_y)
+    angle = math.atan2(directional_vector[1], directional_vector[0])
+    target_angle = angle - player_rotation
+    print(f"Player Position: {player_x}, {player_y}, {player_z}")
+    print(f"Entity Position: {entity_x}, {entity_y}, {entity_z}")
+    print(f"Target Angle: {target_angle}")
+    normalized_target_angle = (target_angle + math.pi) % (2 * math.pi) - math.pi
+    print(f"Normalized Target Angle: {normalized_target_angle}")
+    interception_movement = radians_to_interception_movement(normalized_target_angle)
+    print(f"Interception Movement: {interception_movement}")
     # Vertical Movement, ignore for now
-    return
+
+    return interception_movement
 
 
 if __name__ == "__main__":
@@ -110,7 +124,49 @@ if __name__ == "__main__":
             zoom_out()
             time.sleep(0.1)
 
+            print("Beginning Target Entity in 5 Seconds")
+            print("4")
+            time.sleep(1)
+            print("3")
+            time.sleep(1)
+            print("2")
+            time.sleep(1)
+            print("1")
+            time.sleep(1)
+            print("0")
+            time.sleep(1)
+
+            while True:
+                # Starting Pitch is always 0
+                CURRENT_PITCH = 0
+
+                data = json.loads(message)
+                player_information = data['player']
+
+                # Sort entities by distance for better readability
+                entities_with_distance = []
+                for entity in data['entities']:
+                    pos = entity['position']
+                    dx = pos['x'] - player_pos['x']
+                    dy = pos['y'] - player_pos['y']
+                    dz = pos['z'] - player_pos['z']
+                    distance_units = math.sqrt(dx*dx + dy*dy + dz*dz)
+                    entities_with_distance.append((entity, distance_m))
+    
+                # Sort by distance (closest first)
+                entities_with_distance.sort(key=lambda x: x[1])
+
+                interception_movement = target_entity(player_information, entities_with_distance[0][0], CURRENT_PITCH)
+                interception.move_relative(interception_movement, 0)
+                interception.press("w")
+                interception.write(f"/8 Targetting Entity", 0.1)
+                interception.press('enter')
+                time.sleep(5.0)
+
             # Mouse Calibration
-            mouse_calibration(10, 10, radar_socket)
-            print("Mouse Calibration Complete")
-            break
+            # mouse_calibration(10, 10, radar_socket)
+            # print("Mouse Calibration Complete")
+            # break
+
+        if not message:
+            continue
