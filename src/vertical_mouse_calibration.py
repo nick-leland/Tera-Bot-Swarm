@@ -260,6 +260,8 @@ if __name__ == "__main__":
                     context.destroy()
 
                 print(f"At {distance} units, the interception movement is {interception_movement_total}")
+                print(f"Player Height: {player_information['position']['z']}")
+                print(f"Target Entity Height: {target_entity_information['position']['z']}")
 
         if not message:
             continue
