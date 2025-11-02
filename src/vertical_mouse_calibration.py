@@ -136,6 +136,7 @@ if __name__ == "__main__":
 
     waiting = False
     has_initialized = False
+    has_locked_target = False
 
     while True:
         try:
@@ -207,7 +208,6 @@ if __name__ == "__main__":
                 time.sleep(1)
                 continue
 
-            has_locked_target = False
             if not has_locked_target:
                 interception_movement = target_entity(player_information, target_entity_information, CURRENT_PITCH)
                 interception.move_relative(interception_movement, 0)
