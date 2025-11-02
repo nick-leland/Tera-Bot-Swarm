@@ -19,9 +19,8 @@ else:
 
     import interception
     from interception import beziercurve
-    from interception import Interception, _keycodes
-    from interception.constants import FilterKeyFlag, KeyFlag
-    from interception.strokes import KeyStroke
+    from interception import Interception
+    from interception.constants import FilterKeyFlag
     from interception import inputs  # optional, used here for auto_capture_devices
 
     interception.auto_capture_devices()
@@ -62,6 +61,7 @@ def radians_to_interception_movement(angle):
     return int(angle * 579.5)
 
 
+# Only X position for now
 def target_entity(player_information, entity_information, current_pitch):
     # Initial Player Information
     player_x = player_information['position']['x']
@@ -211,7 +211,6 @@ if __name__ == "__main__":
             if not has_locked_target:
                 interception_movement = target_entity(player_information, target_entity_information, CURRENT_PITCH)
                 interception.move_relative(interception_movement, 0)
-                interception.press("s")
                 interception.press("w")
                 has_locked_target = True
 
@@ -226,15 +225,10 @@ if __name__ == "__main__":
                 context = Interception()
                 context.set_filter(context.is_keyboard, FilterKeyFlag.FILTER_KEY_DOWN)
 
-                watched_codes = {
-                    _keycodes.get_key_information(letter).scan_code: letter
-                    for letter in ("w", "a", "s", "d")
-                }
-
                 print("Beginning Pitch Calibration")
 
                 try:
-                    print("Waiting for WASD; press w, a, s, or d to exit.")
+                    print("Press Ctrl+C in this terminal to stop calibration.")
                     while True:
                         device = context.await_input()
                         if device is None:
@@ -248,14 +242,8 @@ if __name__ == "__main__":
 
                         interception_movement_total += movement_per_step
                         interception.move_relative(0, movement_per_step)
-
-                        if (
-                            isinstance(stroke, KeyStroke)
-                            and stroke.flags == KeyFlag.KEY_DOWN
-                            and stroke.code in watched_codes
-                        ):
-                            print(f"{watched_codes[stroke.code]!r} detected, stopping loop.")
-                            break
+                except KeyboardInterrupt:
+                    print("Pitch calibration interrupted by user.")
                 finally:
                     context.destroy()
 
