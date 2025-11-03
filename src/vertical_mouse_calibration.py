@@ -223,13 +223,13 @@ if __name__ == "__main__":
             print("Beginning Pitch Calibration")
 
             for step in range(calibration_steps):
-                interception_movement_total += movement_per_step
+                interception_movement_total -= movement_per_step
                 interception.move_relative(0, movement_per_step)
                 print(
                     f"Step {step + 1}/{calibration_steps}: "
                     f"movement_total={interception_movement_total}"
                 )
-                time.sleep(0.05)
+                time.sleep(0.5)
 
             print(f"At {distance} units, the interception movement is {interception_movement_total}")
             print(f"Player Height: {player_information['position']['z']}")
