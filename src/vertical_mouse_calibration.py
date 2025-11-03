@@ -19,9 +19,6 @@ else:
 
     import interception
     from interception import beziercurve
-    from interception import Interception
-    from interception.constants import FilterKeyFlag
-    from interception import inputs  # optional, used here for auto_capture_devices
 
     interception.auto_capture_devices()
     curve_params = beziercurve.BezierCurveParams()
@@ -137,128 +134,108 @@ if __name__ == "__main__":
     waiting = False
     has_initialized = False
     has_locked_target = False
-    should_exit = False
+    calibration_steps = 150
 
-    while True:
-        if should_exit:
-            break
+    try:
+        while True:
+            try:
+                # Blocking receive with timeout (RCVTIMEO). With CONFLATE, this is always the latest state.
+                message = radar_socket.recv_string()
+            except zmq.error.Again:
+                if not waiting:
+                    print("No message received from TERA Radar, Waiting for message")
+                    waiting = True
+                time.sleep(0.01)
+                continue
 
-        try:
-            # Blocking receive with timeout (RCVTIMEO). With CONFLATE, this is always the latest state.
-            message = radar_socket.recv_string()
-        except zmq.error.Again:
-            if not waiting:
-                print("No message received from TERA Radar, Waiting for message")
-                waiting = True
-            time.sleep(0.01)
-            continue
+            if not message:
+                continue
 
-        if not message:
-            continue
+            if waiting and not has_initialized:
+                print("Message received from TERA Radar, Starting Game")
+                # Intiial Game Setup (run once)
+                interception.press("esc")
+                time.sleep(0.1)
+                zoom_out()
+                time.sleep(0.1)
+                print("Beginning Target Entity in 5 Seconds")
+                print("4")
+                time.sleep(1)
+                print("3")
+                time.sleep(1)
+                print("2")
+                time.sleep(1)
+                print("1")
+                time.sleep(1)
+                print("0")
+                time.sleep(1)
+                has_initialized = True
+            waiting = False
 
-        if waiting and not has_initialized:
-            print("Message received from TERA Radar, Starting Game")
-            # Intiial Game Setup (run once)
-            interception.press("esc")
-            time.sleep(0.1)
-            zoom_out()
-            time.sleep(0.1)
-            print("Beginning Target Entity in 5 Seconds")
-            print("4")
-            time.sleep(1)
-            print("3")
-            time.sleep(1)
-            print("2")
-            time.sleep(1)
-            print("1")
-            time.sleep(1)
-            print("0")
-            time.sleep(1)
-            has_initialized = True
-        waiting = False
+            # Starting Pitch is always 0
+            CURRENT_PITCH = 0
 
-        # Starting Pitch is always 0
-        CURRENT_PITCH = 0
+            data = json.loads(message)
+            player_information = data['player']
 
-        data = json.loads(message)
-        player_information = data['player']
+            def distance_to_entity(player_information, entity_information):
+                player_x = player_information['position']['x']
+                player_y = player_information['position']['y']
+                player_z = player_information['position']['z']
+                entity_x = entity_information['position']['x']
+                entity_y = entity_information['position']['y']
+                entity_z = entity_information['position']['z']
+                distance = math.sqrt((player_x - entity_x)**2 + (player_y - entity_y)**2 + (player_z - entity_z)**2)
+                return distance
 
-        def distance_to_entity(player_information, entity_information):
-            player_x = player_information['position']['x']
-            player_y = player_information['position']['y']
-            player_z = player_information['position']['z']
-            entity_x = entity_information['position']['x']
-            entity_y = entity_information['position']['y']
-            entity_z = entity_information['position']['z']
-            distance = math.sqrt((player_x - entity_x)**2 + (player_y - entity_y)**2 + (player_z - entity_z)**2)
-            return distance
+            # Sort entities by distance for better readability
+            entities_with_distance = []
+            for entity in data['entities']:
+                pos = entity['position']
+                dx = pos['x'] - player_information['position']['x']
+                dy = pos['y'] - player_information['position']['y']
+                dz = pos['z'] - player_information['position']['z']
+                distance_units = math.sqrt(dx * dx + dy * dy + dz * dz)
+                entities_with_distance.append((entity, distance_units))
 
-        # Sort entities by distance for better readability
-        entities_with_distance = []
-        for entity in data['entities']:
-            pos = entity['position']
-            dx = pos['x'] - player_information['position']['x']
-            dy = pos['y'] - player_information['position']['y']
-            dz = pos['z'] - player_information['position']['z']
-            distance_units = math.sqrt(dx * dx + dy * dy + dz * dz)
-            entities_with_distance.append((entity, distance_units))
+            # Sort by distance (closest first)
+            entities_with_distance.sort(key=lambda x: x[1])
 
-        # Sort by distance (closest first)
-        entities_with_distance.sort(key=lambda x: x[1])
+            if len(entities_with_distance) > 0:
+                target_entity_information = entities_with_distance[0][0]
+            else:
+                target_entity_information = None
+                print("No entities found")
+                time.sleep(1)
+                continue
 
-        if len(entities_with_distance) > 0:
-            target_entity_information = entities_with_distance[0][0]
-        else:
-            target_entity_information = None
-            print("No entities found")
-            time.sleep(1)
-            continue
+            if not has_locked_target:
+                interception_movement = target_entity(player_information, target_entity_information, CURRENT_PITCH)
+                interception.move_relative(interception_movement, 0)
+                interception.press("w")
+                has_locked_target = True
+                continue
 
-        if not has_locked_target:
-            interception_movement = target_entity(player_information, target_entity_information, CURRENT_PITCH)
-            interception.move_relative(interception_movement, 0)
-            interception.press("w")
-            has_locked_target = True
-            continue
+            distance = distance_to_entity(player_information, target_entity_information)
+            interception_movement_total = 0
+            movement_per_step = -10
 
-        distance = distance_to_entity(player_information, target_entity_information)
-        interception_movement_total = 0
-        movement_per_step = -10
+            print("Beginning Pitch Calibration")
 
-        # Ensure the driver is installed and the correct devices are registered.
-        inputs.auto_capture_devices(keyboard=True, mouse=False, verbose=False)
-
-        context = Interception()
-        context.set_filter(context.is_keyboard, FilterKeyFlag.FILTER_KEY_DOWN)
-
-        print("Beginning Pitch Calibration")
-
-        try:
-            print("Press Ctrl+C in this terminal to stop calibration.")
-            while True:
-                device = context.await_input()
-                if device is None:
-                    continue
-
-                stroke = context.devices[device].receive()
-                if stroke is None:
-                    continue
-
-                context.send(device, stroke)  # let the original input propagate
-
+            for step in range(calibration_steps):
                 interception_movement_total += movement_per_step
                 interception.move_relative(0, movement_per_step)
-        except KeyboardInterrupt:
-            print("Pitch calibration interrupted by user; exiting.")
-            should_exit = True
-        finally:
-            context.destroy()
+                print(
+                    f"Step {step + 1}/{calibration_steps}: "
+                    f"movement_total={interception_movement_total}"
+                )
+                time.sleep(0.05)
 
-        if should_exit:
-            break
+            print(f"At {distance} units, the interception movement is {interception_movement_total}")
+            print(f"Player Height: {player_information['position']['z']}")
+            print(f"Target Entity Height: {target_entity_information['position']['z']}")
 
-        print(f"At {distance} units, the interception movement is {interception_movement_total}")
-        print(f"Player Height: {player_information['position']['z']}")
-        print(f"Target Entity Height: {target_entity_information['position']['z']}")
-
-    radar_socket.close()
+    except KeyboardInterrupt:
+        print("Calibration loop interrupted by user; shutting down.")
+    finally:
+        radar_socket.close()
