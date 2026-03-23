@@ -1,0 +1,40 @@
+; Minimal NVIDIA GPU-P driver INF
+; Uses full PCI hardware ID (SUBSYS+REV) for higher specificity than vrd.inf
+; Loads patched nvlddmkm.sys from System32\drivers
+[Version]
+Signature   = "$Windows NT$"
+Class       = Display
+ClassGuid   = {4d36e968-e325-11ce-bfc1-08002be10318}
+Provider    = %NvidiaMfg%
+CatalogFile = nvgpup.cat
+DriverVer   = 03/20/2026,32.0.15.9579
+
+[Manufacturer]
+%NvidiaMfg% = NvidiaDevices, NTamd64
+
+[NvidiaDevices.NTamd64]
+%GPU-P% = GPU-P_Inst, PCI\VEN_1414&DEV_008E&SUBSYS_00000000&REV_00
+
+[GPU-P_Inst]
+; No CopyFiles - nvlddmkm.sys is pre-placed in System32\drivers
+FeatureScore = f8
+
+[GPU-P_Inst.HW]
+AddReg = GPU-P_HW_AddReg
+
+[GPU-P_HW_AddReg]
+HKR,, UpperFilters, 0x00010000
+
+[GPU-P_Inst.Services]
+AddService = nvlddmkm, 0x00000002, nvlddmkm_ServiceInstall
+
+[nvlddmkm_ServiceInstall]
+DisplayName   = "NVIDIA Windows Kernel Mode Driver"
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %12%\nvlddmkm.sys
+
+[Strings]
+NvidiaMfg = "NVIDIA Corporation"
+GPU-P     = "NVIDIA GeForce RTX 5090 (GPU-P)"

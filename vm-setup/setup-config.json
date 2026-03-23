@@ -1,0 +1,22 @@
+{
+  "_comment": "Edit this file to configure your VM setup. Do not edit the .ps1 scripts directly.",
+
+  "VMName":         "TeraBot1",
+  "VMBasePath":     "C:\\VirtualMachines",
+
+  "ISOPath":        "C:\\VirtualMachines\\Win11_25H2_English_x64_v2.iso",
+  "TeraSourcePath": "D:\\TERA Starscape",
+  "BotSourcePath":  "C:\\Users\\chaot\\Programming\\tera_project",
+  "EasyGpuPvPath":  "C:\\Users\\chaot\\Programming\\Easy-GPU-PV",
+
+  "VMSwitchName":   "Default Switch",
+  "VMRamGB":        8,
+  "VMvCPUs":        4,
+  "VMOSDiskGB":     100,
+  "VMGameDiskGB":   80,
+
+  "VMUsername":     "bot",
+  "VMPassword":     "bot123",
+
+  "ZMQPort":        3000
+}
