@@ -1,0 +1,21 @@
+{
+  "name": "radar",
+  "version": "1.0.0",
+  "description": "Pseudo Radar which uses ZeroMQ to send packets to a server",
+  "main": "index.js",
+  "scripts": {
+    "install": "electron-rebuild -f -w zeromq",
+    "postinstall": "electron-rebuild -f -w zeromq"
+  },
+  "dependencies": {
+    "electron-rebuild": "^3.2.9",
+    "zeromq": "^6.0.0"
+  },
+  "electronRebuildConfig": {
+    "electronVersion": "11.0.5",
+    "force": true,
+    "onlyModules": [
+      "zeromq"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+[00:53:47.506] UnhandledPromiseRejectionWarning
+[00:53:47.512] ReferenceError: mod is not defined
+    at create_socket (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:28:9)
+    at async NetworkMod.<anonymous> (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:63:22)
+[00:53:47.513] UnhandledPromiseRejectionWarning: ReferenceError: mod is not defined
+    at create_socket (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:28:9)
+    at async NetworkMod.<anonymous> (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:63:22)
+    at emitUnhandledRejectionWarning (internal/process/promises.js:149:15)
+    at processPromiseRejections (internal/process/promises.js:211:11)
+    at processTicksAndRejections (internal/process/task_queues.js:98:32)
+[00:53:47.515] UnhandledPromiseRejectionWarning
+[00:53:47.516] Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 3)
+[00:53:47.522] ReferenceError: mod is not defined
+    at create_socket (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:28:9)
+    at async NetworkMod.<anonymous> (D:\TERA Starscape\TERA Starscape Toolbox\mods\radar\index.js:63:22)
+[00:53:47.523] DeprecationWarning
+[00:53:47.524] Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+[00:53:47.526] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+    at emitDeprecationWarning (internal/process/promises.js:161:11)
+    at processPromiseRejections (internal/process/promises.js:213:13)
+    at processTicksAndRejections (internal/process/task_queues.js:98:32)

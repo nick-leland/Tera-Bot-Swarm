@@ -1,0 +1,1 @@
+Currently, there is a problem with the log output idk we need to actually write the ndjson, it isn't being made right now.
