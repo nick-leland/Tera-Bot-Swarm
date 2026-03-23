@@ -1,0 +1,11 @@
+tera_bot.code-workspace
+.flake8
+.mypy.ini
+.ruff.toml
+.ruff_cache/
+.vscode/
+.venv/
+venv/
+.pytest_cache/
+.pytest_cache/
+videos/
