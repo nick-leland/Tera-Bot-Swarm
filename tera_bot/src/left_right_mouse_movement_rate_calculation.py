@@ -3,26 +3,10 @@ import json
 import zmq
 import time
 import os
-import sys
-import ctypes
-from interception_commands import zoom_out
 import math
 
-
-DLL_DIR = r"C:\Tools\Interception\library\x64"
-
-if not os.path.exists(os.path.join(DLL_DIR, "interception.dll")):
-    sys.exit(f"interception.dll not found in {DLL_DIR}")
-else:
-    os.add_dll_directory(DLL_DIR)
-
-    ctypes.WinDLL(os.path.join(DLL_DIR, "interception.dll"))
-
-    import interception
-    from interception import beziercurve
-
-    interception.auto_capture_devices()
-    curve_params = beziercurve.BezierCurveParams()
+from interception_init import interception
+from interception_commands import zoom_out
 
 
 def mouse_calibration(steps: int, step_size: int, radar_socket):

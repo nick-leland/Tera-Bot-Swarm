@@ -1,26 +1,7 @@
 import time
 import math
 
-# --- TOP OF FILE (before any other imports that touch interception) ---
-import os, sys, ctypes
-DLL_DIR = r"C:\Tools\Interception\library\x64"   # <— change to your real folder
-
-if not os.path.exists(os.path.join(DLL_DIR, "interception.dll")):
-    sys.exit(f"interception.dll not found in {DLL_DIR}")
-
-# Needed on Python 3.8+ to extend DLL search dirs
-os.add_dll_directory(DLL_DIR)
-
-# Force-load by absolute path so Windows won’t guess
-ctypes.WinDLL(os.path.join(DLL_DIR, "interception.dll"))
-
-# Now it’s safe to import the Python package
-import interception
-from interception import beziercurve
-# ---------------------------------------------------------------
-
-interception.auto_capture_devices()
-curve_params = beziercurve.BezierCurveParams()
+from interception_init import interception, beziercurve, curve_params
 
 
 def move_mouse_to(x, y):

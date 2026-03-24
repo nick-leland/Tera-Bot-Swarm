@@ -2,25 +2,9 @@ import time
 import os
 import cv2
 import numpy as np
-import sys
-import ctypes
 
+from interception_init import interception, beziercurve, curve_params
 from interception_commands import zoom_out, toggle_hud
-
-DLL_DIR = r"C:\Tools\Interception\library\x64"
-
-if not os.path.exists(os.path.join(DLL_DIR, "interception.dll")):
-    sys.exit(f"interception.dll not found in {DLL_DIR}")
-else:
-    os.add_dll_directory(DLL_DIR)
-
-    ctypes.WinDLL(os.path.join(DLL_DIR, "interception.dll"))
-
-    import interception
-    from interception import beziercurve
-
-    interception.auto_capture_devices()
-    curve_params = beziercurve.BezierCurveParams()
 
 
 try:
