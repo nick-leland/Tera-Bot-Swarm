@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "captcha-recognizer>=1.0.2",
+    "interception-python>=1.13.6",
     "numpy>=2.4.3",
     "pillow>=12.1.1",
+    "pywin32>=306; sys_platform == 'win32'",
 ]
