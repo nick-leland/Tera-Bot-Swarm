@@ -54,14 +54,13 @@ def solve_captcha(max_attempts: int = 3):
     start_point = (new_x_base, new_y_base)
     end_point = (new_x_base - pixel_movement, new_y_base)
 
-    # Command Mouse to click and drag the slider to the computed distance
+    # Drag with LMB (key_down("left") is the keyboard left-arrow key).
     move_mouse_to(start_point[0], start_point[1])
     time.sleep(1.0)
-    interception.key_down("left")
-    time.sleep(1.0)
-    move_mouse_to(end_point[0], end_point[1])
-    time.sleep(1.0)
-    interception.key_up("left")
+    with interception.hold_mouse("left"):
+        time.sleep(0.05)
+        move_mouse_to(end_point[0], end_point[1])
+        time.sleep(0.05)
 
     # Optional: Screenshot and crop again
     # if model returns anything, this means that we failed the captcha
