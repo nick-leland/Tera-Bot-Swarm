@@ -1,0 +1,11 @@
+[project]
+name = "tera-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "captcha-recognizer>=1.0.2",
+    "numpy>=2.4.3",
+    "pillow>=12.1.1",
+]
