@@ -56,10 +56,11 @@ def solve_captcha(max_attempts: int = 3):
 
     # Command Mouse to click and drag the slider to the computed distance
     move_mouse_to(start_point[0], start_point[1])
+    time.sleep(1.0)
     interception.key_down("left")
-    time.sleep(0.1)
+    time.sleep(1.0)
     move_mouse_to(end_point[0], end_point[1])
-    time.sleep(0.1)
+    time.sleep(1.0)
     interception.key_up("left")
 
     # Optional: Screenshot and crop again
