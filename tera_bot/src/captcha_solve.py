@@ -32,7 +32,13 @@ def solve_captcha(max_attempts: int = 3):
 
     # Pass the screenshot to the Captcha Solving Model
     image_array = np.array(img.convert('RGB'))
+    Image.fromarray(image_array).save(screenshots_dir / "captcha.png")
     box, confidence = Slider().identify(source=image_array)
+    print(f"Box: {box}, Confidence: {confidence}")
+
+    if confidence < 0.5:
+        print("Failed to solve captcha")
+        return False
 
     # Compute the distance to drag the captcha square slider
     center_x = (box[0] + box[2]) / 2
